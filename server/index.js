@@ -28,16 +28,34 @@ app.post('/generate-labels', upload.single('file'), async (req, res) => {
 			.json({ error: 'Either text or file is required' });
 	}
 
-	// Mock logic: respond with dummy labels + file info (if any)
-	const dummyLabels = ['tagged', 'example', 'demo'];
-	const fileInfo = uploadedFile
-		? {
-				originalname: uploadedFile.originalname,
-				mimetype: uploadedFile.mimetype,
-		  }
-		: null;
+	let finalText = text || '';
 
-	res.json({ labels: dummyLabels, fileInfo });
+	// If it's a text file, extract content
+	if (uploadedFile) {
+		const fileExt = path.extname(uploadedFile.originalname).toLowerCase();
+
+		if (fileExt === '.txt' || fileExt === '.md') {
+			finalText = uploadedFile.buffer.toString('utf-8');
+		} else if (
+			fileExt === '.png' ||
+			fileExt === '.jpg' ||
+			fileExt === '.jpeg'
+		) {
+			// For now: simulate with dummy message
+			return res
+				.status(501)
+				.json({ error: 'Image OCR not implemented yet' });
+		} else {
+			return res.status(400).json({ error: 'Unsupported file type' });
+		}
+	}
+
+	// (Later: send finalText to DeepSeek)
+	const dummyLabels = ['processed', 'text', 'extracted'];
+	res.json({
+		labels: dummyLabels,
+		extractedText: finalText.slice(0, 100) + '...',
+	});
 });
 
 const PORT = process.env.PORT || 5000;

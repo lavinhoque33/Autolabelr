@@ -27,6 +27,7 @@ export default function TextInput() {
 				},
 			);
 			setLabels(res.data.labels || []);
+			console.log('Extracted text preview:', res.data.extractedText);
 			console.log('Uploaded file info:', res.data.fileInfo);
 		} catch (err) {
 			console.error('Error generating labels:', err);
