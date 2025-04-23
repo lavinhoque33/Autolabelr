@@ -2,6 +2,7 @@ const express = require('express');
 const cors = require('cors');
 const multer = require('multer');
 const path = require('path');
+const axios = require('axios');
 const app = express();
 
 require('dotenv').config();
@@ -50,12 +51,47 @@ app.post('/generate-labels', upload.single('file'), async (req, res) => {
 		}
 	}
 
-	// (Later: send finalText to DeepSeek)
-	const dummyLabels = ['processed', 'text', 'extracted'];
-	res.json({
-		labels: dummyLabels,
-		extractedText: finalText.slice(0, 100) + '...',
-	});
+	const prompt = `Generate relevant tags or labels (in a comma-separated list) for the following text:\n\n${finalText}`;
+
+	try {
+		const deepseekRes = await axios.post(
+			'https://deepseekcoder-6-7b-openai-compatible.hf.space/v1/chat/completions',
+			{
+				model: 'deepseek-coder-6.7b-instruct',
+				messages: [
+					{
+						role: 'user',
+						content: prompt,
+					},
+				],
+			},
+			{
+				headers: {
+					'Content-Type': 'application/json',
+				},
+			},
+		);
+
+		const rawOutput = deepseekRes.data.choices?.[0]?.message?.content || '';
+		const extractedLabels = rawOutput
+			.replace(/labels?:/i, '')
+			.split(/,|\n/)
+			.map((label) => label.trim().toLowerCase())
+			.filter((label) => label.length > 0);
+
+		res.json({
+			labels: extractedLabels,
+			extractedText: finalText.slice(0, 100) + '...',
+		});
+	} catch (error) {
+		console.error(
+			'DeepSeek error:',
+			error?.response?.data || error.message,
+		);
+		res.status(500).json({
+			error: 'Failed to generate labels using DeepSeek',
+		});
+	}
 });
 
 const PORT = process.env.PORT || 5000;
