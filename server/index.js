@@ -51,31 +51,18 @@ app.post('/generate-labels', upload.single('file'), async (req, res) => {
 		}
 	}
 
-	const prompt = `Generate relevant tags or labels (in a comma-separated list) for the following text:\n\n${finalText}`;
-
+	// Now send the finalText to local FastAPI server
 	try {
-		const deepseekRes = await axios.post(
-			'https://deepseekcoder-6-7b-openai-compatible.hf.space/v1/chat/completions',
-			{
-				model: 'deepseek-coder-6.7b-instruct',
-				messages: [
-					{
-						role: 'user',
-						content: prompt,
-					},
-				],
-			},
-			{
-				headers: {
-					'Content-Type': 'application/json',
-				},
-			},
-		);
+		const response = await axios.post('http://localhost:8000/generate', {
+			text: finalText,
+		});
 
-		const rawOutput = deepseekRes.data.choices?.[0]?.message?.content || '';
+		const rawOutput = response.data.labels_raw || '';
+
+		// Extract labels cleanly
 		const extractedLabels = rawOutput
-			.replace(/labels?:/i, '')
-			.split(/,|\n/)
+			.replace(/labels?:/i, '') // Remove "Labels:" if present
+			.split(/,|\n/) // Split on commas or newlines
 			.map((label) => label.trim().toLowerCase())
 			.filter((label) => label.length > 0);
 
@@ -83,13 +70,13 @@ app.post('/generate-labels', upload.single('file'), async (req, res) => {
 			labels: extractedLabels,
 			extractedText: finalText.slice(0, 100) + '...',
 		});
-	} catch (error) {
+	} catch (err) {
 		console.error(
-			'DeepSeek error:',
-			error?.response?.data || error.message,
+			'DeepSeek FastAPI error:',
+			err.message || err.response?.data,
 		);
 		res.status(500).json({
-			error: 'Failed to generate labels using DeepSeek',
+			error: 'Failed to generate labels from local model',
 		});
 	}
 });
