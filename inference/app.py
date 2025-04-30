@@ -21,6 +21,5 @@ async def generate_labels(data: LabelRequest):
     print(prompt)
     # Generate labels
     response = pipe(prompt, max_new_tokens=100, do_sample=False)[0]['generated_text']
-    print('HERE')
     print(response)
     return {"labels_raw": response}
