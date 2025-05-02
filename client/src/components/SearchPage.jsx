@@ -5,15 +5,16 @@ export default function SearchPage() {
 	const [query, setQuery] = useState('');
 	const [results, setResults] = useState([]);
 	const [loading, setLoading] = useState(false);
+	const [strict, setStrict] = useState(false);
 
 	const handleSearch = async () => {
 		if (!query.trim()) return;
 
 		setLoading(true);
 		try {
-			const res = await axios.get(
-				`http://localhost:5000/search?q=${encodeURIComponent(query)}`,
-			);
+			const res = await axios.get(`http://localhost:5000/search`, {
+				params: { q: query, strict },
+			});
 			setResults(res.data.results || []);
 		} catch (err) {
 			console.error('Search error:', err);
@@ -40,6 +41,15 @@ export default function SearchPage() {
 				>
 					{loading ? 'Searching...' : 'Search'}
 				</button>
+				<label className="flex items-center text-sm ml-2">
+					<input
+						type="checkbox"
+						className="mr-1"
+						checked={strict}
+						onChange={(e) => setStrict(e.target.checked)}
+					/>
+					Strict match
+				</label>
 			</div>
 
 			{results.length > 0 && (

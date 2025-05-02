@@ -4,15 +4,33 @@ const esClient = require('../services/elasticClient');
 
 router.get('/search', async (req, res) => {
 	const query = req.query.q;
+	const strict = req.query.strict === 'true'; // expects "?strict=true"
 	if (!query) return res.status(400).json({ error: 'Missing query' });
 
 	try {
+		const useFuzzy = !strict && query.length > 2;
+
 		const results = await esClient.search({
 			index: 'autolabelr',
 			query: {
-				multi_match: {
-					query,
-					fields: ['text', 'labels'],
+				bool: {
+					should: [
+						{
+							match: {
+								text: useFuzzy
+									? { query, fuzziness: 'AUTO' }
+									: { query },
+							},
+						},
+						{
+							match: {
+								labels: useFuzzy
+									? { query, fuzziness: 'AUTO' }
+									: { query },
+							},
+						},
+					],
+					minimum_should_match: 1,
 				},
 			},
 		});
