@@ -83,12 +83,15 @@ export default function SearchPage() {
 											item.text.slice(0, 300) + '...',
 									}}
 								/>
-								<div className="text-sm text-gray-800">
-									<strong>Labels:</strong>{' '}
-									{(
-										item.highlights?.labels || item.labels
-									).join(', ')}
-								</div>
+								<div
+									className="text-sm text-gray-800"
+									dangerouslySetInnerHTML={{
+										__html: `<strong>Labels:</strong> ${(
+											item.highlights?.labels ||
+											item.labels
+										).join(', ')}`,
+									}}
+								/>
 							</div>
 						))}
 					</div>

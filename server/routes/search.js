@@ -55,7 +55,7 @@ router.get('/search', async (req, res) => {
 		}));
 		res.json({
 			results: hits,
-			total: response.hits.total.value,
+			total: results.hits.total.value,
 			page,
 			size,
 		});
