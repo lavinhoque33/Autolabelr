@@ -33,9 +33,20 @@ router.get('/search', async (req, res) => {
 					minimum_should_match: 1,
 				},
 			},
+			highlight: {
+				pre_tags: ['<mark>'],
+				post_tags: ['</mark>'],
+				fields: {
+					text: {},
+					labels: {},
+				},
+			},
 		});
 
-		const hits = results.hits.hits.map((hit) => hit._source);
+		const hits = results.hits.hits.map((hit) => ({
+			...hit._source,
+			highlights: hit.highlight || {},
+		}));
 		res.json({ results: hits });
 	} catch (err) {
 		console.error('Search error:', err);

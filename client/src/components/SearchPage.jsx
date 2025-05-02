@@ -56,12 +56,19 @@ export default function SearchPage() {
 				<div className="space-y-4 mt-4">
 					{results.map((item, i) => (
 						<div key={i} className="border p-3 rounded bg-gray-50">
-							<p className="mb-2 text-sm text-gray-700 whitespace-pre-wrap">
-								{item.text.slice(0, 300)}...
-							</p>
+							<div
+								className="mb-2 text-sm text-gray-700 whitespace-pre-wrap"
+								dangerouslySetInnerHTML={{
+									__html:
+										item.highlights?.text?.[0] ||
+										item.text.slice(0, 300) + '...',
+								}}
+							/>
 							<div className="text-sm text-gray-800">
 								<strong>Labels:</strong>{' '}
-								{item.labels.join(', ')}
+								{(item.highlights?.labels || item.labels).join(
+									', ',
+								)}
 							</div>
 							{item.createdAt && (
 								<div className="text-xs text-gray-500 mt-1">
