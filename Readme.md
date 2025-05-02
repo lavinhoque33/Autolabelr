@@ -91,6 +91,14 @@ node scripts/seed.js
 
 ## 🖼️ Screenshots (optional)
 
+### 📝 Uploading Text or File
+
+![Upload Page](./screenshots/Upload.png)
+
+### 🔍 Search Results with Highlighting and Pagination
+
+![Search Page](./screenshots/Search.png)
+
 > &#x20;
 
 ---
