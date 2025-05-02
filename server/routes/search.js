@@ -5,6 +5,10 @@ const esClient = require('../services/elasticClient');
 router.get('/search', async (req, res) => {
 	const query = req.query.q;
 	const strict = req.query.strict === 'true'; // expects "?strict=true"
+	const page = parseInt(req.query.page) || 1;
+	const size = parseInt(req.query.size) || 10;
+	const from = (page - 1) * size;
+
 	if (!query) return res.status(400).json({ error: 'Missing query' });
 
 	try {
@@ -12,6 +16,8 @@ router.get('/search', async (req, res) => {
 
 		const results = await esClient.search({
 			index: 'autolabelr',
+			from,
+			size,
 			query: {
 				bool: {
 					should: [
@@ -47,7 +53,12 @@ router.get('/search', async (req, res) => {
 			...hit._source,
 			highlights: hit.highlight || {},
 		}));
-		res.json({ results: hits });
+		res.json({
+			results: hits,
+			total: response.hits.total.value,
+			page,
+			size,
+		});
 	} catch (err) {
 		console.error('Search error:', err);
 		res.status(500).json({ error: 'Search failed' });
